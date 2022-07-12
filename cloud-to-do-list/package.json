@@ -24,6 +24,7 @@
     "@aws-cdk/aws-appsync": "^1.163.1",
     "@aws-cdk/aws-appsync-alpha": "^2.31.1-alpha.0",
     "@aws-cdk/aws-iam": "^1.163.1",
+    "@aws-cdk/aws-lambda-nodejs": "^1.163.1",
     "aws-cdk-lib": "^2.31.1",
     "constructs": "^10.1.43",
     "npm-check-updates": "^15.2.6",
