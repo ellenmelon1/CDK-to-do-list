@@ -1,0 +1,44 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  listTodos: [Todo]
+  getTodo (id: String!): Todo
+}
+
+type Mutation {
+  createTodo (todo: InputTodo!): createToDoResponse
+  updateTodo (id: String! description: String!): Todo
+  deleteTodo (id: String!): Todo
+}
+
+type Todo {
+  id: ID
+  name: String!
+  description: String!
+  attachmentName: String!
+  s3Reference: String!
+  sub: String
+  fileError: String
+  fileLink: String
+  updatedAt: String
+}
+
+type createToDoResponse {
+  data: {
+    createTodo: Todo
+  }
+}
+
+input InputTodo {
+  id: ID!
+  name: String!
+  description: String!
+  attachmentName: String
+  s3Reference: String
+  sub: String
+}
+
+

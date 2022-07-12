@@ -1,16 +1,16 @@
-import { Stack, StackProps,aws_s3 as s3, aws_s3_deployment, aws_cognito } from 'aws-cdk-lib';
+import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam } from 'aws-cdk-lib';
+import * as appsync from '@aws-cdk/aws-appsync-alpha'
 import { Construct } from 'constructs';
-
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { getTodo } from '../graphql/queries';
 
 
 export class CloudToDoListStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const ToDoListBucket = new s3.Bucket(this, 'ToDoListBucket', {
+    const ToDoListBucket = new aws_s3.Bucket(this, 'ToDoListBucket', {
       versioned: true,
-      blockPublicAccess: new s3.BlockPublicAccess({ blockPublicPolicy: false, blockPublicAcls:false,ignorePublicAcls:false, restrictPublicBuckets:false }),
+      blockPublicAccess: new aws_s3.BlockPublicAccess({ blockPublicPolicy: false, blockPublicAcls:false,ignorePublicAcls:false, restrictPublicBuckets:false }),
       publicReadAccess:true
     });
 
@@ -37,13 +37,157 @@ export class CloudToDoListStack extends Stack {
         minLength:6
       }
     });
-    ToDoListUserPool.addClient('app-client', {
-      authFlows: {
-        userPassword: true,
-        userSrp: true,
+
+    const client=ToDoListUserPool.addClient('to-do-list-app-client',{
+      authFlows:{
+        userPassword:true,
+        userSrp:true
       },
       preventUserExistenceErrors: true,
+    })
+
+    const ToDoListIdentityPool=new aws_cognito.CfnIdentityPool(this,'ToDoListIdentityPool',{
+      allowUnauthenticatedIdentities:false,
+      cognitoIdentityProviders:[{
+        clientId:client.userPoolClientId,
+        providerName:ToDoListUserPool.userPoolProviderName
+      }]
+    })
+
+    const authenticatedRole=new aws_iam.Role(this,'authenticated-role',{
+      description:'default role for authenticated users',
+      assumedBy: new aws_iam.FederatedPrincipal('cognito-identity.amazonaws.com',
+      {
+        StringEquals: {
+          'cognito-identity.amazonaws.com:aud': ToDoListIdentityPool.ref,
+        },
+        'ForAnyValue:StringLike': {
+          'cognito-identity.amazonaws.com:amr': 'authenticated',
+        },
+      },
+      'sts:AssumeRoleWithWebIdentity',),
+      managedPolicies: [
+        aws_iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole',
+        ),
+      ],
+    })
+
+    const unauthenticatedRole = new aws_iam.Role(this,'unathenticated-role',{
+      description:'default role for unauthenticated users',
+      assumedBy: new aws_iam.FederatedPrincipal('cognito-identity.amazonaws.com',
+      {
+        StringEquals: {
+          'cognito-identity.amazonaws.com:aud': ToDoListIdentityPool.ref,
+        },
+        'ForAnyValue:StringLike': {
+          'cognito-identity.amazonaws.com:amr': 'unauthenticated',
+        },
+      },
+      'sts:AssumeRoleWithWebIdentity',),
+      managedPolicies: [
+        aws_iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole',
+        ),
+      ],
+    })
+
+    new aws_cognito.CfnIdentityPoolRoleAttachment(
+      this,
+      'identity-pool-role-attachment',
+      {
+        identityPoolId: ToDoListIdentityPool.ref,
+        roles: {
+          authenticated: authenticatedRole.roleArn,
+          unauthenticated:unauthenticatedRole.roleArn
+        },
+        roleMappings: {
+          mapping: {
+            type: 'Token',
+            ambiguousRoleResolution: 'AuthenticatedRole',
+            identityProvider: `cognito-idp.${
+              Stack.of(this).region
+            }.amazonaws.com/${ToDoListUserPool.userPoolId}:${
+              client.userPoolClientId
+            }`,
+          },
+        },
+      },
+    );
+
+    const ToDoListTable = new aws_dynamodb.Table(this, 'ToDoListTable', {
+      partitionKey: { name: 'pk', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'sk', type: aws_dynamodb.AttributeType.STRING },
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
     });
+
+    const api=new appsync.GraphqlApi(this,'Api',{
+      name:'todolist-appsync-api',
+      schema:appsync.Schema.fromAsset('schema.graphql'),
+      authorizationConfig:{
+        defaultAuthorization:{
+          authorizationType: appsync.AuthorizationType.API_KEY,
+          userPoolConfig: {
+            userPool: ToDoListUserPool,
+            defaultAction: appsync.UserPoolDefaultAction.ALLOW,
+        }
+      }
+    }})
+
+    authenticatedRole.addToPolicy(
+      new aws_iam.PolicyStatement({
+        effect:aws_iam.Effect.ALLOW,
+        actions:['appsync:GraphQL'],
+        resources:['*']
+      })
+    )
+
+    const ToDoListDataSource=api.addDynamoDbDataSource('ToDoListDataSource',ToDoListTable);
+
+   new appsync.Resolver(this, 'listTodosResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Query',
+      fieldName:'listTodos',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
+    })
+
+    new appsync.Resolver(this, 'getTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Query',
+      fieldName:'getTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
+    })
+
+    new appsync.Resolver(this, 'createTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Mutation',
+      fieldName:'createTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+    })
+
+    new appsync.Resolver(this, 'updateTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Mutation',
+      fieldName:'updateTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+    })
+
+    new appsync.Resolver(this, 'deleteTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Mutation',
+      fieldName:'deleteTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+    })
   }
 }
 
