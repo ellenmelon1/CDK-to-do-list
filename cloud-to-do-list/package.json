@@ -27,6 +27,7 @@
     "@aws-cdk/aws-lambda-nodejs": "^1.163.1",
     "aws-cdk-lib": "^2.31.1",
     "constructs": "^10.1.43",
+    "esbuild": "^0.14.49",
     "npm-check-updates": "^15.2.6",
     "source-map-support": "^0.5.21"
   }

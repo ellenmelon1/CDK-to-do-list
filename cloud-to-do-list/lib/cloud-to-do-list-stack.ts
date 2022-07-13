@@ -1,8 +1,7 @@
-import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, CfnOutput } from 'aws-cdk-lib';
+import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, aws_lambda_nodejs } from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as appsync from '@aws-cdk/aws-appsync-alpha'
 import { Construct } from 'constructs';
-import { IamResource } from '@aws-cdk/aws-appsync-alpha';
 
 
 export class CloudToDoListStack extends Stack {
@@ -116,11 +115,11 @@ export class CloudToDoListStack extends Stack {
       },
     );
 
-    // const ToDoListTable = new aws_dynamodb.Table(this, 'ToDoListTable', {
-    //   partitionKey: { name: 'pk', type: aws_dynamodb.AttributeType.STRING },
-    //   sortKey: { name: 'sk', type: aws_dynamodb.AttributeType.STRING },
-    //   billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-    // });
+    const ToDoListTable = new aws_dynamodb.Table(this, 'ToDoListTable', {
+      partitionKey: { name: 'pk', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'sk', type: aws_dynamodb.AttributeType.STRING },
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
 
     const api=new appsync.GraphqlApi(this,'Api',{
       name:'todolist-appsync-api',
@@ -143,71 +142,66 @@ export class CloudToDoListStack extends Stack {
       })
     )
 
-    const externalTable = aws_dynamodb.Table.fromTableArn(this,'externalTable','arn:aws:dynamodb:eu-west-2:723455457584:table/Todo-exkw7f5i5reaxo54j2mm5pcu3u-dev')
+    // const externalTable = aws_dynamodb.Table.fromTableArn(this,'externalTable','arn:aws:dynamodb:eu-west-2:723455457584:table/Todo-exkw7f5i5reaxo54j2mm5pcu3u-dev')
 
-    // const ToDoListDataSource=api.addDynamoDbDataSource('ToDoListDataSource', externalTable);
+    const ToDoListDataSource=api.addDynamoDbDataSource('ToDoListDataSource', ToDoListTable);
 
-    const firstLambda = new lambda.Function(this,'firstLambda', {
-      handler: 'handler',
-      code:lambda.Code.fromInline('./firstLambda.ts'),
-      runtime:lambda.Runtime.NODEJS_14_X,
-    })
+    // const apiHandler = new aws_lambda_nodejs.NodejsFunction(this,'api', {
+    //   entry:'./lib/my-construct.api.ts',
+    //   handler: 'handler',
+    // })
 
-    // const principal = new aws_iam.ServicePrincipal('my-service')
-
-    // firstLambda.grantInvoke(principal);
-
-    const ToDoListDataSource = api.addLambdaDataSource('ToDoListDataSource', firstLambda)
+    // const ToDoListDataSource = api.addLambdaDataSource('ToDoListDataSource', apiHandler)
     
-    ToDoListDataSource.createResolver({
+    // ToDoListDataSource.createResolver({
+    //   fieldName:'listTodos',
+    //   typeName:'Query'
+    // })
+
+   new appsync.Resolver(this, 'listTodosResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Query',
       fieldName:'listTodos',
-      typeName:'Query'
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
     })
 
-  //  new appsync.Resolver(this, 'listTodosResolver',{
-  //     api,
-  //     dataSource:ToDoListDataSource,
-  //     typeName:'Query',
-  //     fieldName:'listTodos',
-  //     requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
-  //     responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
-  //   })
+    new appsync.Resolver(this, 'getTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Query',
+      fieldName:'getTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
+    })
 
-  //   new appsync.Resolver(this, 'getTodoResolver',{
-  //     api,
-  //     dataSource:ToDoListDataSource,
-  //     typeName:'Query',
-  //     fieldName:'getTodo',
-  //     requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
-  //     responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
-  //   })
+    new appsync.Resolver(this, 'createTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Mutation',
+      fieldName:'createTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+    })
 
-  //   new appsync.Resolver(this, 'createTodoResolver',{
-  //     api,
-  //     dataSource:ToDoListDataSource,
-  //     typeName:'Mutation',
-  //     fieldName:'createTodo',
-  //     requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
-  //     responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
-  //   })
+    new appsync.Resolver(this, 'updateTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Mutation',
+      fieldName:'updateTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+    })
 
-  //   new appsync.Resolver(this, 'updateTodoResolver',{
-  //     api,
-  //     dataSource:ToDoListDataSource,
-  //     typeName:'Mutation',
-  //     fieldName:'updateTodo',
-  //     requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
-  //     responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
-  //   })
-
-  //   new appsync.Resolver(this, 'deleteTodoResolver',{
-  //     api,
-  //     dataSource:ToDoListDataSource,
-  //     typeName:'Mutation',
-  //     fieldName:'deleteTodo',
-  //     requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
-  //     responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
-  //   })
+    new appsync.Resolver(this, 'deleteTodoResolver',{
+      api,
+      dataSource:ToDoListDataSource,
+      typeName:'Mutation',
+      fieldName:'deleteTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+    })
   }
 }
 
