@@ -1,8 +1,6 @@
 import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, aws_lambda_nodejs } from 'aws-cdk-lib';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as appsync from '@aws-cdk/aws-appsync-alpha'
 import { Construct } from 'constructs';
-
 
 export class CloudToDoListStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -116,8 +114,7 @@ export class CloudToDoListStack extends Stack {
     );
 
     const ToDoListTable = new aws_dynamodb.Table(this, 'ToDoListTable', {
-      partitionKey: { name: 'pk', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'id', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
@@ -145,6 +142,7 @@ export class CloudToDoListStack extends Stack {
     // const externalTable = aws_dynamodb.Table.fromTableArn(this,'externalTable','arn:aws:dynamodb:eu-west-2:723455457584:table/Todo-exkw7f5i5reaxo54j2mm5pcu3u-dev')
 
     const ToDoListDataSource=api.addDynamoDbDataSource('ToDoListDataSource', ToDoListTable);
+    const NoneDataSource=api.addNoneDataSource('none');
 
     // const apiHandler = new aws_lambda_nodejs.NodejsFunction(this,'api', {
     //   entry:'./lib/my-construct.api.ts',
@@ -158,49 +156,121 @@ export class CloudToDoListStack extends Stack {
     //   typeName:'Query'
     // })
 
-   new appsync.Resolver(this, 'listTodosResolver',{
+    const MutationCreateTodoDataResolverFn = new appsync.AppsyncFunction(this,'MutationCreateTodoDataResolverFn',{
       api,
       dataSource:ToDoListDataSource,
-      typeName:'Query',
-      fieldName:'listTodos',
-      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
-      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
+      name:'MutationCreateTodoDataResolverFn',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/createTodoDataResolverFn.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/createTodoDataResolverFn.vtl')
     })
 
-    new appsync.Resolver(this, 'getTodoResolver',{
+    const MutationDeleteTodoDataResolverFn = new appsync.AppsyncFunction(this,'MutationDeleteTodoDataResolverFn',{
       api,
       dataSource:ToDoListDataSource,
-      typeName:'Query',
-      fieldName:'getTodo',
-      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts'),
-      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/queries.ts')
+      name:'MutationDeleteTodoDataResolverFn',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/MutationDeleteTodoDataResolverFn.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/MutationDeleteTodoDataResolverFn.vtl')
     })
 
-    new appsync.Resolver(this, 'createTodoResolver',{
+    const MutationUpdateTodoDataResolverFn = new appsync.AppsyncFunction(this,'MutationUpdateTodoDataResolverFn',{
       api,
       dataSource:ToDoListDataSource,
-      typeName:'Mutation',
-      fieldName:'createTodo',
-      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
-      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+      name:'MutationUpdateTodoDataResolverFn',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/MutationUpdateTodoDataResolverFn.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/MutationUpdateTodoDataResolverFn.vtl')
     })
 
-    new appsync.Resolver(this, 'updateTodoResolver',{
+    const MutationcreateTodoinit0Function = new appsync.AppsyncFunction(this,'MutationcreateTodoinit0Function',{
+      api,
+      dataSource:NoneDataSource,
+      name:'MutationcreateTodoinit0Function',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/MutationcreateTodoinit0Function.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/MutationcreateTodoinit0Function.vtl')
+    })
+
+    const MutationupdateTodoinit0Function = new appsync.AppsyncFunction(this,'MutationupdateTodoinit0Function',{
+      name:'MutationupdateTodoinit0Function',
+      api,
+      dataSource:NoneDataSource,
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/MutationupdateTodoinit0Function.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/MutationupdateTodoinit0Function.vtl')
+    })
+
+    const QueryGetTodoDataResolverFn = new appsync.AppsyncFunction(this,'QueryGetTodoDataResolverFn',{
       api,
       dataSource:ToDoListDataSource,
+      name:'QueryGetTodoDataResolverFn',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/QueryGetTodoDataResolverFn.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/QueryGetTodoDataResolverFn.vtl')
+    })
+
+    const QueryListTodosDataResolverFn = new appsync.AppsyncFunction(this,'QueryListTodosDataResolverFn',{
+      api,
+      dataSource:ToDoListDataSource,
+      name:'QueryListTodosDataResolverFn',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/QueryListTodosDataResolverFn.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/QueryListTodosDataResolverFn.vtl')
+    })
+
+    const QuerygetTodopostAuth0Function = new appsync.AppsyncFunction(this,'QuerygetTodopostAuth0Function',{
+      api,
+      dataSource:NoneDataSource,
+      name:'QuerygetTodopostAuth0Function',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/QuerygetTodopostAuth0Function.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/QuerygetTodopostAuth0Function.vtl'),
+    })
+
+    const SubscriptionOnCreateTodoDataResolverFn = new appsync.AppsyncFunction(this,'SubscriptionOnCreateTodoDataResolverFn',{
+      api,
+      dataSource:NoneDataSource,
+      name:'SubscriptionOnCreateTodoDataResolverFn',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/request-templates/SubscriptionOnCreateTodoDataResolverFn.vtl'),
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/response-templates/SubscriptionOnCreateTodoDataResolverFn.vtl')
+    })
+
+    new appsync.Resolver(this, 'updateTodo',{
+      api,
       typeName:'Mutation',
       fieldName:'updateTodo',
-      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
-      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/UpdateTodoBefore.vtl'),
+      pipelineConfig: [MutationupdateTodoinit0Function,QuerygetTodopostAuth0Function,MutationUpdateTodoDataResolverFn],
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/UpdateTodoAfter.vtl')
     })
 
-    new appsync.Resolver(this, 'deleteTodoResolver',{
+    new appsync.Resolver(this, 'getTodo',{
       api,
-      dataSource:ToDoListDataSource,
+      typeName:'Query',
+      fieldName:'getTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/GetTodoBefore.vtl'),
+      pipelineConfig:[QuerygetTodopostAuth0Function,QueryGetTodoDataResolverFn],
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/GetTodoAfter.vtl')
+    })
+
+    new appsync.Resolver(this, 'createTodo',{
+      api,
+      typeName:'Mutation',
+      fieldName:'createTodo',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/CreateTodoBefore.vtl'),
+      pipelineConfig:[MutationcreateTodoinit0Function,QuerygetTodopostAuth0Function,MutationCreateTodoDataResolverFn],
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/CreateTodoAfter.vtl')
+    })
+
+    new appsync.Resolver(this, 'deleteTodo',{
+      api,
       typeName:'Mutation',
       fieldName:'deleteTodo',
-      requestMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts'),
-      responseMappingTemplate:appsync.MappingTemplate.fromFile('graphql/mutations.ts')
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/DeleteTodoBefore.vtl'),
+      pipelineConfig:[QuerygetTodopostAuth0Function,MutationDeleteTodoDataResolverFn],
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/DeleteTodoAfter.vtl')
+    })
+
+    new appsync.Resolver(this, 'listTodos',{
+      api,
+      typeName:'Query',
+      fieldName:'listTodos',
+      requestMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/ListTodosBefore.vtl'),
+      pipelineConfig:[QuerygetTodopostAuth0Function,QueryListTodosDataResolverFn],
+      responseMappingTemplate:appsync.MappingTemplate.fromFile('./mapping-templates/resolver-templates/ListTodosAfter.vtl')
     })
   }
 }
