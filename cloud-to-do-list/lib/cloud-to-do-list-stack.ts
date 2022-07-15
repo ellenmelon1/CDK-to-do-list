@@ -1,6 +1,7 @@
-import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, aws_lambda_nodejs } from 'aws-cdk-lib';
+import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam} from 'aws-cdk-lib';
 import * as appsync from '@aws-cdk/aws-appsync-alpha'
 import { Construct } from 'constructs';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 export class CloudToDoListStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -16,6 +17,21 @@ export class CloudToDoListStack extends Stack {
       sources:[aws_s3_deployment.Source.asset('./build')],
       destinationBucket: ToDoListBucket,
     })
+
+    const corsRule:aws_s3.CorsRule={
+      allowedHeaders:['*'],
+      allowedMethods:[aws_s3.HttpMethods.GET, aws_s3.HttpMethods.HEAD, aws_s3.HttpMethods.PUT, aws_s3.HttpMethods.POST, aws_s3.HttpMethods.DELETE],
+      allowedOrigins:['*'],
+      exposedHeaders:['x-amz-server-side-encryption','x-amz-request-id','x-amz-id-2','ETag'],
+      maxAge:3000
+    }
+
+    const UserUploadsBucket = new aws_s3.Bucket(this, 'UserUploadsBucket', {
+      versioned: true,
+      blockPublicAccess: new aws_s3.BlockPublicAccess({ blockPublicPolicy: false, blockPublicAcls:false,ignorePublicAcls:false, restrictPublicBuckets:false }),
+      publicReadAccess:true,
+      cors:[corsRule]
+    });
 
     const ToDoListUserPool = new aws_cognito.UserPool(this,'ToDoListUserPool',{
       userPoolName:'ToDoListUserPool',
@@ -70,6 +86,36 @@ export class CloudToDoListStack extends Stack {
         ),
       ],
     })
+
+    authenticatedRole.addToPolicy(new PolicyStatement({
+      resources:['arn:aws:s3:::cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5/public/*'],
+      actions:['s3:PutObject','s3:GetObject', 's3:DeleteObject']
+    }))
+
+    authenticatedRole.addToPolicy(new PolicyStatement({
+      resources:['arn:aws:s3:::cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5/private/${cognito-identity.amazonaws.com:sub}/*'],
+      actions:['s3:PutObject','s3:GetObject', 's3:DeleteObject']
+    }))
+
+    authenticatedRole.addToPolicy(new PolicyStatement({
+      resources:['arn:aws:s3:::cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5/protected/${cognito-identity.amazonaws.com:sub}/*'],
+      actions:['s3:PutObject','s3:GetObject', 's3:DeleteObject']
+    }))
+
+    authenticatedRole.addToPolicy(new PolicyStatement({
+      resources:['arn:aws:s3:::cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5/protected/*'],
+      actions:['s3:GetObject']
+    }))
+
+    authenticatedRole.addToPolicy(new PolicyStatement({
+      resources:['arn:aws:s3:::cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5'],
+      actions:['s3:ListBucket'],
+      conditions:{
+        StringLike:{
+          's3:prefix':['public','public/*','protected','protected/*','private/${cognito-identity.amazonaws.com:sub}/','private/${cognito-identity.amazonaws.com:sub}/*']
+        }
+      }
+    }))
 
     const unauthenticatedRole = new aws_iam.Role(this,'unathenticated-role',{
       description:'default role for unauthenticated users',
