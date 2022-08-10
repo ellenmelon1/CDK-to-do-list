@@ -1,0 +1,25 @@
+{% load static %}
+{% include "recipes/nav.html" %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'recipes/update.css' %}">
+
+<div class="container">
+<h1>Update recipe</h1>
+
+<form action="updaterecord/" method="POST">
+    {% csrf_token %}
+    <div class="form-input">
+        <label htmlFor="name">Name</label>
+        <input type="text" name="name" value="{{recipe.name}}" />
+    </div>
+    <div class="form-input">
+        <label htmlFor="description">Description</label>
+        <textarea type="text" name="description">{{recipe.description}}</textarea>
+    </div>
+    <div class="form-input">
+        <label htmlFor="ingredients">Ingredients</label>
+        <textarea type="text-area" name="ingredients">{{recipe.ingredients}}</textarea>
+    </div>
+        <input class="submit" type="submit">
+</form>
+</div>

@@ -1,0 +1,45 @@
+@import "variables.css";
+
+h1 {
+    color: var(--quaternaryColour);
+    text-align: center;
+}
+
+.container {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: var(--regularPadding);
+    margin: var(--regularMargin);
+}
+
+.card {
+    background-color: var(--primaryColour);
+    display: flex;
+    justify-content: center;
+    padding: var(--regularPadding)
+}
+
+.recipe-name {
+    color: white;
+    text-decoration: none;
+    font-size: var(--smallHeadingFontSize);
+    font-weight: bolder;
+}
+
+.create-recipe-card {
+    background-color: var(--tertiaryColour);
+    /* height: 100px;
+    width: 300px; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--regularPadding);
+}
+
+.create-recipe-link {
+    color: var(--quaternaryColour);
+    font-weight: bolder;
+    text-decoration: none;
+    font-size: var(--smallHeadingFontSize);
+}

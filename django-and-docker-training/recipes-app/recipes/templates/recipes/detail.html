@@ -1,0 +1,24 @@
+{% load static %}
+{% include "recipes/nav.html" %}
+<link rel="stylesheet" type="text/css" href="{% static 'recipes/detail.css' %}">
+<div class="container">
+    <h1>{{recipe.name}}</h1>
+    <p>{{recipe.description}}</p>
+
+    {% if recipe.ingredients != null %}
+    <h2>Ingredients</h2>
+        <ul>
+        {% for ingredient in recipe.ingredients %}
+            <li>{{ingredient}}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ingredients not specified</p>
+    {% endif %}
+    <div class="button-container">
+    <a class="button" href="update/">Edit recipe</a>
+    <a class="button" href="delete/">Delete recipe</a>
+</div>
+</div>
+
+

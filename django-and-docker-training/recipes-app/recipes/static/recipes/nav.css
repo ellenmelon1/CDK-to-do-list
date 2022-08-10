@@ -1,0 +1,12 @@
+@import "variables.css";
+
+nav {
+    background-color: var(--secondaryColour);
+    padding: var(--regularPadding);
+}
+
+.navLink {
+    color: white;
+    text-decoration: none;
+    font-weight: bolder;
+}

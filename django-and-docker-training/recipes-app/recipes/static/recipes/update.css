@@ -1,0 +1,53 @@
+@import "variables.css";
+
+h1 {
+    color: var(--quaternaryColour);
+    text-align: center;
+}
+
+.container {
+    background-color: var(--tertiaryColour);
+    margin: var(--regularMargin);
+    padding: var(--regularPadding);
+
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-input {
+    padding: var(--regularPadding);
+}
+
+input {
+    border: none;
+    padding: 10px;
+    margin: 0px var(--regularMargin);
+}
+
+.submit {
+    background-color: var(--primaryColour);
+    padding: var(--regularPadding) calc(var(--regularPadding)*2);
+    margin: var(--regularMargin);
+    color: white;
+    font-weight: bolder;
+    font-size: var(--smallHeadingFontSize);
+}
+
+label {
+    font-weight: bolder;
+    color: var(--primaryColour);
+    font-size: var(--smallHeadingFontSize);
+}
+
+textarea {
+    width:300px;
+    height:75px;
+    border: none;
+    padding: 10px;
+    margin: 0px var(--regularMargin);
+}
+

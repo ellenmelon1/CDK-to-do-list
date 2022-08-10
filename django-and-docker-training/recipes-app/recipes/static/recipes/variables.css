@@ -1,0 +1,24 @@
+:root {
+    --secondaryColour: #a5c90f;
+    --primaryColour: #fe6b40;
+    --tertiaryColour: #ffb366;
+    --quaternaryColour: darkslategrey;
+
+    --regularPadding: 18px;
+    --regularMargin: 32px;
+
+    --regularFontSize: 16px;
+    --largeHeadingFontSize: 40px;
+    --smallHeadingFontSize: 19px;
+}
+
+body {
+    font-family: "Inv Maison Neue","Maison Neue",-apple-system,BlinkMacSystemFont,"Open Sans",open-sans,sans-serif;
+    font-size: var(--regularFontSize);
+}
+
+h1 {
+    font-size: var(--largeHeadingFontSize);
+    font-weight: bolder;
+}
+

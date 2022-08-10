@@ -1,0 +1,24 @@
+{% load static %}
+{% include "recipes/nav.html" %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'recipes/index.css' %}">
+
+<h1>Recipes</h1>
+
+{% if recipes_list %}
+<div class="container">
+    <div class="create-recipe-card">
+        <a class="create-recipe-link" href="{% url 'recipes:create_recipe' %}">Create new recipe</a>
+        </div>
+    {% for recipe in recipes_list %}
+    <div class="card">
+        <a class="recipe-name" href="{% url 'recipes:detail' recipe.id %}">{{recipe.name}}</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No recipes published</p>
+{% endif %}
+
+</div>
+
+

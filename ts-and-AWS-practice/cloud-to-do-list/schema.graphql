@@ -1,0 +1,27 @@
+input beginsWith {
+	beginsWith: String
+}
+
+type Mutation {
+	createTodo(name: String!, description: String!, attachmentName: String, s3Reference: String): Todo
+	updateTodoDescription(sk: String!, description: String!): Todo
+	updateTodoCompleted(sk:String!, completed: Boolean!): Todo
+	deleteTodo(sk: String!): String
+	getSignedURL(fileType: String!, key: String!): String
+	getSignedGetURL(key: String!): String
+}
+
+type Query {
+	getTodo(sk: String!): Todo
+	listTodos(usersub: String!): [Todo]
+}
+
+type Todo {
+	pk:String!
+	sk: String!
+	name: String!
+	completed: Boolean!
+	attachmentName: String
+	s3Reference: String
+	description: String
+}
