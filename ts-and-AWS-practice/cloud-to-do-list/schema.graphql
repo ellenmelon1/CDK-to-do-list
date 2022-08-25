@@ -24,4 +24,5 @@ type Todo {
 	attachmentName: String
 	s3Reference: String
 	description: String
+	createdAt: String
 }

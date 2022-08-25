@@ -3,10 +3,25 @@
 nav {
     background-color: var(--secondaryColour);
     padding: var(--regularPadding);
+    display: flex;
+    flex-direction: row;
+    align-content: center;
 }
 
 .navLink {
     color: white;
     text-decoration: none;
+    font-weight: bolder;
+    align-self: center;
+    padding: 0px 20px;
+}
+
+.inactive {
+    display: none; 
+}
+
+p {
+    color: var(--quaternaryColour);
+    padding: 0px 20px;
     font-weight: bolder;
 }

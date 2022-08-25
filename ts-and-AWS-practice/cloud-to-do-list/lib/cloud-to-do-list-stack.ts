@@ -1,7 +1,8 @@
-import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, aws_lambda_nodejs} from 'aws-cdk-lib';
+import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, aws_lambda_nodejs, aws_cloudfront, aws_cloudfront_origins} from 'aws-cdk-lib';
 import * as appsync from '@aws-cdk/aws-appsync-alpha'
 import { Construct } from 'constructs';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
+
 
 export class CloudToDoListStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -18,10 +19,36 @@ export class CloudToDoListStack extends Stack {
       destinationBucket: ToDoListBucket,
     })
 
+    const accessIdentity = new OriginAccessIdentity(this,'accessIdentity');
+
+    const redirectError: aws_cloudfront.ErrorResponse = {
+      httpStatus: 404,
+      responseHttpStatus: 200,
+      responsePagePath: '/index.html'
+    }
+
+    const accessDeniedErrorRedirect: aws_cloudfront.ErrorResponse = {
+      httpStatus: 403,
+      responseHttpStatus: 200,
+      responsePagePath: '/index.html'
+    }
+
+    new aws_cloudfront.Distribution(this, 'myDist', {
+      defaultBehavior: 
+      {origin: new aws_cloudfront_origins.S3Origin(ToDoListBucket, {originAccessIdentity: accessIdentity}),
+      allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_ALL,
+      viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      cachePolicy: aws_cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      originRequestPolicy: aws_cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+      responseHeadersPolicy: aws_cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS},
+      errorResponses:[redirectError, accessDeniedErrorRedirect]
+  })
+
+
     const corsRule:aws_s3.CorsRule={
       allowedHeaders:['*'],
       allowedMethods:[aws_s3.HttpMethods.GET, aws_s3.HttpMethods.HEAD, aws_s3.HttpMethods.PUT, aws_s3.HttpMethods.POST, aws_s3.HttpMethods.DELETE],
-      allowedOrigins:['http://cloudtodoliststack-todolistbucket24986b86-1xu8ks60p0cqq.s3-website.eu-west-2.amazonaws.com'],
+      allowedOrigins:['http://cloudtodoliststack-todolistbucket24986b86-1xu8ks60p0cqq.s3-website.eu-west-2.amazonaws.com', 'http://localhost:3000'],
       exposedHeaders:['x-amz-server-side-encryption','x-amz-request-id','x-amz-id-2','ETag'],
       maxAge:3000
     }

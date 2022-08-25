@@ -1,7 +1,9 @@
 
 import {S3} from 'aws-sdk'
+import {PutObjectCommand, S3Client} from "@aws-sdk/client-s3"
 import {documentClient} from './dynamodbclient'
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, UpdateCommand, DeleteCommand} from '@aws-sdk/lib-dynamodb'
 import { v4 } from 'uuid'
@@ -82,6 +84,8 @@ interface createTodoEvent {
 export const createTodoHandler = async (event: createTodoEvent) =>{
     const sub = event.identity.claims.sub;
     const id = v4();
+    const date = new Date()
+    const formattedDate = date.toISOString()
 
     const marshallOptions = {
         removeUndefinedValues: true
@@ -101,7 +105,8 @@ export const createTodoHandler = async (event: createTodoEvent) =>{
             'name': event.arguments.name,
             'description': event.arguments.description,
             'attachmentName':event.arguments.attachmentName,
-            's3Reference':event.arguments.s3Reference
+            's3Reference':event.arguments.s3Reference,
+            'createdAt': formattedDate
         },
     })
 
@@ -242,18 +247,18 @@ interface getSignedURLInput {
     }
 }
 
-export const getSignedURLHandler=async(event: getSignedURLInput)=>{
+export const getSignedURLHandler=async(event: getSignedURLInput) => {
 
-    const s3 = new S3();
-    const params = {
-        Bucket: 'cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5',
-        Key:event.arguments.key,
-        Expires:120,
-        ContentType: event.arguments.fileType,
+    const s3Client = new S3Client({region:"eu-west-2"})
+    const bucketParams = {
+        Bucket: "cloudtodoliststack-useruploadsbucket84a648c8-6wnm9k0jrtg5",
+        Key: event.arguments.key,
+        ContentType: event.arguments.fileType
     }
+    const command = new PutObjectCommand(bucketParams)
 
-    const signedPutUrl = await s3.getSignedUrlPromise('putObject',{...params})
-    return signedPutUrl;
+    const signedUrl = await getSignedUrl(s3Client, command, {expiresIn:3600})
+    return signedUrl
 }
 
 interface getSignedGetURLInput {

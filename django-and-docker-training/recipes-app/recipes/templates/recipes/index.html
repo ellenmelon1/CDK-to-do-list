@@ -13,6 +13,9 @@
     {% for recipe in recipes_list %}
     <div class="card">
         <a class="recipe-name" href="{% url 'recipes:detail' recipe.id %}">{{recipe.name}}</a>
+        <div class="image-container">
+        <img src="{{recipe.image.url}}" alt="{{recipe.name}}" style="max-width: 300px; max-height: 250px">
+    </div>
     </div>
     {% endfor %}
 {% else %}

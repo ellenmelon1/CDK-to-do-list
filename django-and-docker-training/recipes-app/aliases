@@ -2,3 +2,5 @@
 
 alias dr="docker-compose run web"
 alias dup="docker-compose up"
+
+

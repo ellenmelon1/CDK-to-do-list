@@ -10,3 +10,4 @@ urlpatterns = [
     path('<int:id>/update/', views.update, name='update'),
     path('<int:id>/update/updaterecord/', views.updaterecord, name='updaterecord')
 ]
+

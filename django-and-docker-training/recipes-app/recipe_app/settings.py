@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -55,7 +57,7 @@ ROOT_URLCONF = 'recipe_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,8 +75,6 @@ WSGI_APPLICATION = 'recipe_app.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-import os
    
 DATABASES = {
     'default': {
@@ -124,11 +124,40 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = '/static/'
+import os
+MEDIA_URL = '/media/'  
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
+AWS_STORAGE_BUCKET_NAME = 'ellen-recipes-bucket'
+AWS_S3_FILE_OVERWRITE = False  
+AWS_S3_REGION_NAME = "eu-west-2" 
+AWS_ACCESS_KEY_ID = 'AKIA2Q4KOHEYA4AP36EE'
+AWS_SECRET_ACCESS_KEY = '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'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_URL = '/static/'
+
+# added to try and stop django freaking out when adding static files corresponding to registration templates at root level
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+
+# this is where it would collect all static files in one place after running collectstatic cmd, to serve them in prod
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_REDIRECT_URL = '/recipes/'
+
+# logs any sent emails to the console, to allow testing while this isn't set up
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+
 
 

@@ -1,5 +1,17 @@
 {% load static %}
+
 <link rel="stylesheet" type="text/css" href="{% static 'recipes/nav.css' %}">
+
+{% if user.is_authenticated %}
 <nav>
-    <a class="navLink" href="/recipes/">Home</a>
+    <p>Welcome {{user.get_username}}!</p>
+    <a class="navLink {% if request.path == '/recipes/' %}inactive {% endif %}" href="/recipes/">Home</a>
+    <a class="navLink" href="/accounts/logout">Logout</a>
 </nav>
+
+{% else %}
+<nav>
+    <a class="navLink {% if request.path == '/accounts/login/' %} inactive {% endif %}" href="/accounts/login">Login</a>
+    <a class="navLink {% if request.path == '/register/' %} inactive {% endif %}" href="/register">Sign up</a>
+</nav>
+{% endif %}
