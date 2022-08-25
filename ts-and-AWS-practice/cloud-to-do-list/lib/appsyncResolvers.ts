@@ -140,6 +140,8 @@ interface updateTodoDescriptionEvent {
 }
 
 export const updateTodoDescriptionHandler = async (event: updateTodoDescriptionEvent) =>{
+    const date = new Date()
+    const formattedDate = date.toISOString()
 
     const updateCommand = new UpdateCommand({
         TableName: process.env.TABLE_NAME,
@@ -147,9 +149,10 @@ export const updateTodoDescriptionHandler = async (event: updateTodoDescriptionE
             pk:'todo',
             sk:event.arguments.sk
         },
-        UpdateExpression:"set description = :d",
+        UpdateExpression:"set description = :d, updatedAt = :u",
         ExpressionAttributeValues:{
-            ':d':event.arguments.description
+            ':d':event.arguments.description,
+            ':u':formattedDate
         }
     })
 
@@ -181,6 +184,8 @@ interface updateTodoCompletedEvent {
 }
 
 export const updateTodoCompletedHandler = async (event: updateTodoCompletedEvent) =>{
+    const date = new Date()
+    const formattedDate = date.toISOString()
 
     const updateCommand = new UpdateCommand({
         TableName: process.env.TABLE_NAME,
@@ -188,9 +193,10 @@ export const updateTodoCompletedHandler = async (event: updateTodoCompletedEvent
             pk:'todo',
             sk:event.arguments.sk
         },
-        UpdateExpression:"set completed = :c",
+        UpdateExpression:"set completed = :c, updatedAt = :d",
         ExpressionAttributeValues:{
-            ':c':event.arguments.completed
+            ':c':event.arguments.completed,
+            ':d':formattedDate
         }
     })
 
