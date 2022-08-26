@@ -7,6 +7,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, UpdateCommand, DeleteCommand} from '@aws-sdk/lib-dynamodb'
 import { v4 } from 'uuid'
+import { dateToCloudFormation } from 'aws-cdk-lib';
 
 const config = { 
     region: 'eu-west-2',
@@ -184,8 +185,9 @@ interface updateTodoCompletedEvent {
 }
 
 export const updateTodoCompletedHandler = async (event: updateTodoCompletedEvent) =>{
-    const date = new Date()
-    const formattedDate = date.toISOString()
+
+    const date = new Date();
+    const formattedDate = date.toISOString();
 
     const updateCommand = new UpdateCommand({
         TableName: process.env.TABLE_NAME,

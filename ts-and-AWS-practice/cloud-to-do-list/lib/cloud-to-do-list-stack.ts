@@ -48,7 +48,7 @@ export class CloudToDoListStack extends Stack {
     const corsRule:aws_s3.CorsRule={
       allowedHeaders:['*'],
       allowedMethods:[aws_s3.HttpMethods.GET, aws_s3.HttpMethods.HEAD, aws_s3.HttpMethods.PUT, aws_s3.HttpMethods.POST, aws_s3.HttpMethods.DELETE],
-      allowedOrigins:['http://cloudtodoliststack-todolistbucket24986b86-1xu8ks60p0cqq.s3-website.eu-west-2.amazonaws.com', 'http://localhost:3000'],
+      allowedOrigins:['http://cloudtodoliststack-todolistbucket24986b86-1xu8ks60p0cqq.s3-website.eu-west-2.amazonaws.com', 'http://localhost:3000', 'https://d1m3jgcuw5fz76.cloudfront.net'],
       exposedHeaders:['x-amz-server-side-encryption','x-amz-request-id','x-amz-id-2','ETag'],
       maxAge:3000
     }
