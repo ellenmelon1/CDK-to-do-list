@@ -19,29 +19,21 @@ export class CloudToDoListStack extends Stack {
       destinationBucket: ToDoListBucket,
     })
 
-    const accessIdentity = new OriginAccessIdentity(this,'accessIdentity');
-
     const redirectError: aws_cloudfront.ErrorResponse = {
       httpStatus: 404,
       responseHttpStatus: 200,
       responsePagePath: '/index.html'
     }
 
-    const accessDeniedErrorRedirect: aws_cloudfront.ErrorResponse = {
-      httpStatus: 403,
-      responseHttpStatus: 200,
-      responsePagePath: '/index.html'
-    }
-
     new aws_cloudfront.Distribution(this, 'myDist', {
       defaultBehavior: 
-      {origin: new aws_cloudfront_origins.S3Origin(ToDoListBucket, {originAccessIdentity: accessIdentity}),
+      {origin: new aws_cloudfront_origins.S3Origin(ToDoListBucket),
       allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_ALL,
       viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       cachePolicy: aws_cloudfront.CachePolicy.CACHING_OPTIMIZED,
       originRequestPolicy: aws_cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
       responseHeadersPolicy: aws_cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS},
-      errorResponses:[redirectError, accessDeniedErrorRedirect]
+      errorResponses:[redirectError]
   })
 
 
