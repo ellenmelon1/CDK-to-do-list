@@ -1,5 +1,22 @@
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
+
 input beginsWith {
 	beginsWith: String
+}
+
+type Subscription {
+    updateTodoDescription: Todo
+	@aws_subscribe(mutations: ["updateTodoDescription"])
+	updateTodoCompleted: Todo
+	@aws_subscribe(mutations: ["updateTodoCompleted"])
+	createTodo: Todo
+	@aws_subscribe(mutations: ["createTodo"])
+	deleteTodo: String
+	@aws_subscribe(mutations: ["deleteTodo"])
 }
 
 type Mutation {

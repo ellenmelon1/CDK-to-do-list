@@ -1,8 +1,6 @@
 import { Stack, StackProps, aws_s3, aws_s3_deployment, aws_cognito, aws_dynamodb, aws_iam, aws_lambda_nodejs, aws_cloudfront, aws_cloudfront_origins} from 'aws-cdk-lib';
 import * as appsync from '@aws-cdk/aws-appsync-alpha'
 import { Construct } from 'constructs';
-import { OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
-
 
 export class CloudToDoListStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -35,7 +33,6 @@ export class CloudToDoListStack extends Stack {
       responseHeadersPolicy: aws_cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS},
       errorResponses:[redirectError]
   })
-
 
     const corsRule:aws_s3.CorsRule={
       allowedHeaders:['*'],
